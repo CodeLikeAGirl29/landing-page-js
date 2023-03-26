@@ -13,113 +13,137 @@
  *
  */
 
-// Start Global Variables
-const navBar = document.querySelector(".navbar__menu");
-const navList = document.querySelector("#navbar__list");
+/**
+ * Comments should be present at the beginning of each procedure and class.
+ * Great to have comments before crucial code sections within the procedure.
+ */
+
+/**
+ * Define Global Variables
+ */
 const sections = document.querySelectorAll("section");
-const footer = document.querySelector("footer");
-const header = document.querySelector(".page__header");
-// End Global Variables
+let navList = document.querySelector("#navbar__list");
+let listItems = [];
+const headerNavBar = document.querySelector(".page__header");
+const scrollTopBtn = document.querySelector(".btn-scrl-top");
+// nav animation to be used for set time out and clear time out
+let navAnimation;
+let sectionHeadings = document.querySelectorAll("section h2");
 
-// Start build the nav
-function buildNav() {
-	sections.forEach((section) => {
-		const navButton = document.createElement("li");
-		navButton.insertAdjacentHTML(
-			"beforeend",
-			`<a href="#${section.id}" class="menu__link">${section.dataset.nav}</a>`
-		);
-		//Append the li to the ul
-		navList.appendChild(navButton);
+/**
+ * End Global Variables
+ */
 
-		//scrollBehavior Function Invoke
-		scrollBehavior(navButton, section);
-	});
-	//Append the ul to the nav
-	navBar.appendChild(navList);
-}
+// build the nav
 
-buildNav();
-//End build the nav
-
-// Start of Scroll to anchor ID using scrollTO event
-function scrollBehavior(navButton, section) {
-	navButton.addEventListener("click", function (event) {
-		event.preventDefault();
-		window.scrollTo({
-			top: section.offsetTop,
-			behavior: "smooth"
-		});
-	});
-}
-// End of Scroll to anchor ID using scrollTO event
-
-// Start of Set the Section class 'active' when it near to the top of viewport
-function activeSection() {
-	// Select all anchor using "menu__link" class
-	const navActive = document.querySelectorAll(".menu__link");
-	sections.forEach((section, i) => {
-		//Get the boundingrect for each section
-		const sectionBond = section.getBoundingClientRect();
-		//Check if the section is in viewport or not
-		if (sectionBond.top <= 380 && sectionBond.bottom >= 350) {
-			//section in viewport accourding to top and bottom boundings
-			//add 'your-active-class' class to the specific section
-			section.classList.add("your-active-class");
-			//add 'active_button' class to the specific nav button according to section ID
-			navActive[i].classList.add("active");
-		} else {
-			//Remove both section and navButton active classes when section is off sight
-			section.classList.remove("your-active-class");
-			navActive[i].classList.remove("active");
-		}
-	});
-}
-// End of Set the Section class 'active' when it near to the top of viewport
-
-// Start of Toggle the NavBar According to User Scroll Activity
-function toggleNavBar() {
-	let userScroll;
-	//Default Settings for NavBar while scrolling
-	header.style.cssText = "opacity: 1; transition: ease 0.3s ;";
-	// Cleartimeout throughout the scrolling
-	window.clearTimeout(userScroll);
-	//The Timeout to run after scrolling ends
-	userScroll = setTimeout(function () {
-		//The Settings Executed on NavBar after Timeout finished
-		header.style.cssText = "opacity: 0; transition: ease 0.3s ;";
-	}, 6000);
-}
-// End of Toggle the NavBar According to User Scroll Activity
-
-//Start of the Scroll Event to execute the functions of activeSection and toggleNavBar
-document.addEventListener("scroll", (event) => {
-	activeSection();
-	toggleNavBar();
+sections.forEach((section) => {
+  let sectionNavData = section.getAttribute("data-nav");
+  let item = `<li class="menu__link" data-section="${sectionNavData}">${sectionNavData}</li>`;
+  listItems.push(item);
 });
-//End of the Scroll Event to execute the functions of activeSection and toggleNavBar
-const scrollTop = function () {
-	// create HTML button element
-	const scrollBtn = document.createElement("button");
-	scrollBtn.innerHTML = "&uarr;";
-	scrollBtn.setAttribute("id", "scroll-btn");
-	document.body.appendChild(scrollBtn);
-	// hide/show button based on scroll distance
-	const scrollBtnDisplay = function () {
-		window.scrollY > window.innerHeight
-			? scrollBtn.classList.add("show")
-			: scrollBtn.classList.remove("show");
-	};
-	window.addEventListener("scroll", scrollBtnDisplay);
-	// scroll to top when button clicked
-	const scrollWindow = function () {
-		if (window.scrollY != 0) {
-			setTimeout(function () {
-				window.scrollTo(0, window.scrollY - 70);
-				scrollWindow();
-			}, 10);
-		}
-	};
-	scrollBtn.addEventListener("click", scrollWindow);
-};
-scrollTop();
+navList.innerHTML = listItems.join("\n");
+let navItems = document.querySelectorAll(".menu__link");
+
+// Add class 'active' to section when near top of viewport
+
+document.addEventListener("scroll", () => {
+  headerNavBar.classList.remove("hidden");
+  clearTimeout(navAnimation);
+  // Hide fixed navigation bar while not scrolling
+  navAnimation = setTimeout(() => headerNavBar.classList.add("hidden"), 1500);
+  // setting active section
+  sections.forEach((section) => {
+    if (
+      section.getBoundingClientRect().top <= 200 &&
+      section.getBoundingClientRect().bottom >= 200
+    ) {
+      section.classList.add("your-active-class");
+      // setting active tab
+      navItems.forEach((item) => {
+        if (
+          item.getAttribute("data-section") === section.getAttribute("data-nav")
+        ) {
+          item.classList.add("active");
+        } else item.classList.remove("active");
+      });
+    } else section.classList.remove("your-active-class");
+  });
+  // remmove all active nav links status and nav animation at top
+  if (window.scrollY < 200) {
+    navItems.forEach((item) => item.classList.remove("active"));
+    clearTimeout(navAnimation);
+  }
+  //  show scroll to top btn
+  if (window.scrollY > 300) {
+    scrollTopBtn.classList.add("show");
+  } else scrollTopBtn.classList.remove("show");
+});
+
+// scrolling by nav links
+navItems.forEach((item) => {
+  item.addEventListener("click", (event) => {
+    event.preventDefault();
+    let sectionSelected = event.target.getAttribute("data-section");
+    let sec = document.querySelector(`[data-nav="${sectionSelected}"]`);
+    sec.scrollIntoView({ behavior: "smooth" });
+  });
+});
+
+// scroll to top buttun
+
+scrollTopBtn.addEventListener("click", (event) => {
+  event.preventDefault();
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+});
+
+// append collapse button to sections heading
+function generateCollaseIcon(id) {
+  /* <button id="btn-(id)" class="collapse-icon"><img src="minus.png" alt="collapse"></button> */
+
+  let collapseIcon = document.createElement("button");
+  collapseIcon.classList.add("collapse-icon");
+  if (id % 2) collapseIcon.classList.add("collapse-icon__left");
+  collapseIcon.setAttribute("id", `sectionBtn-${id + 1}`);
+  let collapseIconImg = document.createElement("img");
+  collapseIconImg.setAttribute("src", "./images/minus.png");
+  collapseIconImg.setAttribute("alt", "collapse icon");
+  collapseIcon.appendChild(collapseIconImg);
+  return collapseIcon;
+}
+
+sectionHeadings.forEach((head, index) => {
+  let collapseIcon = generateCollaseIcon(index);
+  head.appendChild(collapseIcon);
+});
+
+// collapse Icons
+
+let collapseIcons = document.querySelectorAll(".collapse-icon");
+
+collapseIcons.forEach((icon) => {
+  let isCollased = true;
+  icon.addEventListener("click", (event) => {
+    event.preventDefault();
+    let btnId = event.target.id;
+    if (isCollased) {
+      document
+        .querySelector(`#${btnId} img`)
+        .setAttribute("src", "./images/add-button.png");
+      isCollased = false;
+    } else {
+      document
+        .querySelector(`#${btnId} img`)
+        .setAttribute("src", "./images/minus.png");
+      isCollased = true;
+    }
+    btnNum = btnId.split("-")[1];
+    sections.forEach((section) => {
+      if (section.id === `section${btnNum}`) {
+        section.classList.toggle("hidden");
+      }
+    });
+  });
+});
