@@ -283,3 +283,11 @@ nav .container ul li.active a {
      border: 1.5px solid steelblue;
     background-color: steelblue;
 }
+
+.show {
+    opacity: 1;
+  }
+
+ i {
+    font-size: 24px;
+  }
